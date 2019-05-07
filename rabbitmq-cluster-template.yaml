@@ -34,6 +34,8 @@ parameters:
 - name: VOLUME_SIZE
   description: "Size of the RabbitMQ data volume"
   value: 1Gi
+- name: STORAGE_CLASS_NAME
+  description: "Storage Class Name for PV"
 
 objects:
 
@@ -144,6 +146,8 @@ objects:
       spec:
         serviceAccountName: ${SERVICE_ACCOUNT}
         terminationGracePeriodSeconds: 30
+        nodeSelector:
+          region: primary
         containers:
         - name: rabbitmq
           command:
@@ -209,7 +213,7 @@ objects:
           - name: RABBITMQ_USE_LONGNAME
             value: "true"
           - name: RABBITMQ_NODENAME
-            value: "rabbit@$(POD_NAME).${CLUSTER_NAME}.$(POD_NAMESPACE).svc.cluster.local"
+            value: "rabbitmq@$(POD_NAME).${CLUSTER_NAME}.$(POD_NAMESPACE).svc.cluster.local"
           - name: RABBITMQ_CONFIG_FILE
             value: /var/lib/rabbitmq/rabbitmq
         volumes:
@@ -226,6 +230,7 @@ objects:
         name: rabbitmq-storage
       spec:
         accessModes: [ "ReadWriteOnce" ]
+        storageClassName: ${STORAGE_CLASS_NAME}
         resources:
           requests:
             storage: ${VOLUME_SIZE}
